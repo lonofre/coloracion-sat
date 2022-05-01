@@ -14,11 +14,16 @@ grafica2 :: Grafica
 grafica2 = [ ("a", ["b"]), ("b", ["a", "c"]), ("c", ["b"]) ]
 
 
+-- Regresa una lista de strings con los nombres de todas las variables proposicionales 
+-- utilizadas (cada una formada por la concatenación del string de un vértice 
+-- y el string de un color) dada una gráfica y una lista de colores
+variableStrings :: Grafica -> Colores -> [String]
+variableStrings grafica colores = [x++y | x<-(vertices grafica), y<-colores]
+
 -- Genera la fórmula que indica que cada vertice
 -- tiene al menos un color: (p1 \/ p2 \/ p3) /\ (q1 \/ q2 \/ q3) ...
 verticesTienenColores :: Grafica -> Colores -> Formula String
 verticesTienenColores grafica colores = error "o:"
-
 
 -- Genera la fórmula que indica que dos vértices adyacentes no pueden
 -- tener el mismo color: (p1 -> ¬q1 /\ ¬r1 /\ ¬s1) ...
@@ -32,11 +37,18 @@ formulaColoracion k grafica = parte1 :&&: parte2
                               parte1 = verticesTienenColores grafica colores
                               parte2 = adyDiferenteColor grafica colores
 
--- Devuelve el resultado de MiniSat a una lista de Coloración
-modelosAColoracion :: [Map.Map String Bool] -> [Coloracion]
-modelosAColoracion r = error "0:"
+-- Regresa una representación bonita de la coloración correspondiente a un modelo,
+-- dado el modelo y la lista de variables utilizadas
+modeloAColoracion :: Map String Bool -> [String] -> String
+modeloAColoracion m vars = intercalate "," verdades
+    where verdades = [x | x<-vars , m!x == True]
 
--- Devuleve todas las k coloraciones que se pueden realizar
--- con la gráfica
-kColoracion  :: Int -> Grafica -> [Coloracion]
-kColoracion k =  modelosAColoracion . solve_all . formulaColoracion k
+-- Regresa una lista de representaciones bonitas de coloraciones, dada la lista de modelos
+-- y la lista de variables utilizadas
+modelosAColoraciones :: [Map String Bool] -> [String] -> [String]
+modelosAColoraciones [] vars = []
+modelosAColoraciones (x:xs) vars = (modeloAColoracion x vars) : (modelosAColoraciones xs vars)
+
+-- Devuleve todas las k coloraciones que se pueden realizar con la gráfica
+kColoracion :: Int -> Grafica -> [Coloracion]
+kColoracion k grafica =  modelosAColoraciones (solve_all formulaColoracion k) (variableStrings grafica (generaColores k))
