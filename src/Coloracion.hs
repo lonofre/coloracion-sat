@@ -25,10 +25,27 @@ variableStrings grafica colores = [x++y | x<-(vertices grafica), y<-colores]
 verticesTienenColores :: Grafica -> Colores -> Formula String
 verticesTienenColores grafica colores = error "o:"
 
+-- Genera una conjunción de todas las fómulas que halla en una lista de formulas
+-- Ejemplo, makeConj [p,q,r,s] = p :&&: q :&&: r :&&: s
+makeConj :: [Formula String] -> Formula String
+makeConj [x]    = x
+makeConj (x:xs) = x:&&:(makeConj xs)
+
+-- Genera la fórmula que indica que todos los vértices que halla en una lista no pueden tener un color en particular
+-- Ejemplo, mapNC ["q","r","s"] "0" = Not (Var "q0") :&&: Not (Var "r0") :&&: Not (Var "s0")
+mapNC :: [Vertice] -> Color -> Formula String 
+mapNC vL c  = makeConj(map (\v -> (Not (Var (v++c))) ) vL) 
+
 -- Genera la fórmula que indica que dos vértices adyacentes no pueden
 -- tener el mismo color: (p1 -> ¬q1 /\ ¬r1 /\ ¬s1) ...
+-------------------------------------------------------------------------------------------
+-- vértice de ejemplo -> x = ("p",["q","r","s"])
+-- vE: el elemento del vértice(vertex Element). Ejemplo, el vE de x es "p"
+-- vA: las adyascencias del vértice(vertex adjacency). Ejemplo, el vA de x es ["q","r","s"]
 adyDiferenteColor :: Grafica -> Colores -> Formula String
-adyDiferenteColor grafica colores = error ":o"
+adyDiferenteColor [(vE,vA)] [c]    = Var(vE++c):->:(mapNC vA c)
+adyDiferenteColor [(vE,vA)] (c:cs) = (Var(vE++c):->:(mapNC vA c)):&&:(adyDiferenteColor [(vE,vA)] cs)        
+adyDiferenteColor (x:xs) (c:cs)    = (adyDiferenteColor [x] (c:cs)):&&:(adyDiferenteColor xs (c:cs))
 
 -- Genera la formula proposicional a resolver
 formulaColoracion :: Int -> Grafica -> Formula String
