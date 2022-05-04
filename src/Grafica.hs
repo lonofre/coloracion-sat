@@ -1,7 +1,8 @@
 module Grafica(
     Vertice,
     Adyacencias,
-    Grafica
+    Grafica,
+    vertices
 ) where
 
 type Vertice = String
