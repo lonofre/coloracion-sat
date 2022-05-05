@@ -17,7 +17,17 @@ grafica2 = [ ("a", ["b"]), ("b", ["a", "c"]), ("c", ["b"]) ]
 -- Genera la fórmula que indica que cada vertice
 -- tiene al menos un color: (p1 \/ p2 \/ p3) /\ (q1 \/ q2 \/ q3) ...
 verticesTienenColores :: Grafica -> Colores -> Formula String
-verticesTienenColores grafica colores = error "o:"
+verticesTienenColores grafica colores = Var (unir (obtenerCombinaciones grafica colores))
+
+--Genera una lista que contiene todas las posibles coloraciones para cada vertice
+obtenerCombinaciones:: Grafica ->Colores ->[String]
+obtenerCombinaciones a b = [x++y++"::||::"|x<-b,y<-(vertices a)]
+
+--Une los elementos de la lista para obtener la formula logica para su operacion
+unir:: [String]-> String
+unir [] = ""
+unir [x] = x
+unir (x:xs) = x ++ unir xs
 
 -- Genera una conjunción de todas las fómulas que halla en una lista de formulas
 -- Ejemplo, makeConj [p,q,r,s] = p :&&: q :&&: r :&&: s
