@@ -8,26 +8,39 @@ import qualified Data.Map as Map
 
 type Coloracion = [String]
 
-grafica1 :: Grafica
-grafica1 = [ ("a", ["b", "c"]), ("b", ["a", "c"]), ("c", ["a", "b"]) ]
+triangulo :: Grafica
+triangulo = [ ("a", ["b", "c"]), ("b", ["a", "c"]), ("c", ["a", "b"]) ]
 
-grafica2 :: Grafica
-grafica2 = [ ("a", ["b"]), ("b", ["a", "c"]), ("c", ["b"]) ]
+grafica1 :: Grafica
+grafica1 = [ ("a", ["b"]), ("b", ["a", "c"]), ("c", ["b"]) ]
+
+cuadrado :: Grafica
+cuadrado = [("a", ["b", "d"]), ("b", ["a", "c"]), ("c", ["b", "d"]), ("d", ["c", "a"]) ]
+
+graficaCompleta4vertices :: Grafica
+graficaCompleta4vertices = [("a", ["b", "d", "c"]), ("b", ["a", "c", "d"]), ("c", ["b", "d", "a"]), ("d", ["c", "a", "b"]) ]
+
+linea :: Grafica
+linea = [("a", ["b"]), ("b", ["a", "c"]), ("c", ["b", "d"]), ("d", ["c", "e"]),  ("e", ["d"])]
+
+cruz :: Grafica
+cruz = [("a", ["e"]), ("b", ["e"]), ("c", ["e"]), ("d", ["e"]),  ("e", ["a", "b", "c", "d"])]
 
 -- Genera la fórmula que indica que cada vertice
 -- tiene al menos un color: (p1 \/ p2 \/ p3) /\ (q1 \/ q2 \/ q3) ...
 verticesTienenColores :: Grafica -> Colores -> Formula String
-verticesTienenColores grafica colores = Var (unir (obtenerCombinaciones grafica colores))
+verticesTienenColores grafica colores = foldr (:&&:) Yes clausulas
+      where clausulas = [ unir $ obtenerCombinaciones v colores | v <- vertices grafica] 
 
 --Genera una lista que contiene todas las posibles coloraciones para cada vertice
-obtenerCombinaciones:: Grafica ->Colores ->[String]
-obtenerCombinaciones a b = [x++y++"::||::"|x<-b,y<-(vertices a)]
+obtenerCombinaciones:: Vertice -> Colores ->[Formula String]
+obtenerCombinaciones v colores = [ Var (v ++ c) | c <- colores]
 
 --Une los elementos de la lista para obtener la formula logica para su operacion
-unir:: [String]-> String
-unir [] = ""
+unir:: [Formula String]-> Formula String
+unir [] = No
 unir [x] = x
-unir (x:xs) = x ++ unir xs
+unir (x:xs) = x :||: unir xs
 
 -- Genera una conjunción de todas las fómulas que halla en una lista de formulas
 -- Ejemplo, makeConj [p,q,r,s] = p :&&: q :&&: r :&&: s
